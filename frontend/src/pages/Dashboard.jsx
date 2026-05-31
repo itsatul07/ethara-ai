@@ -15,7 +15,7 @@ function Dashboard() {
 
   const fetchDashboard = async () => {
     try {
-      const res = await api.get("/dashboard");
+      const res = await api.get("/dashboard/");
       setStats(res.data);
     } catch (error) {
       console.error(error);

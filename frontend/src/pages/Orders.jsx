@@ -29,7 +29,7 @@ export default function Orders({ showToast }) {
   const fetchOrders = async () => {
     setIsFetching(true);
     try {
-      const res = await api.get("/orders");
+      const res = await api.get("/orders/");
       setOrders(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error(error);
@@ -42,7 +42,7 @@ export default function Orders({ showToast }) {
 
   const fetchCustomers = async () => {
     try {
-      const res = await api.get("/customers");
+      const res = await api.get("/customers/");
       setCustomers(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error(error);
@@ -52,7 +52,7 @@ export default function Orders({ showToast }) {
 
   const fetchProducts = async () => {
     try {
-      const res = await api.get("/products");
+      const res = await api.get("/products/");
       setProducts(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error(error);

@@ -25,7 +25,7 @@ export default function Products({ showToast }) {
   const fetchProducts = async () => {
     setIsFetching(true);
     try {
-      const res = await api.get("/products");
+      const res = await api.get("/products/");
       setProducts(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error(error);

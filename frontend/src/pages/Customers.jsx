@@ -24,7 +24,7 @@ export default function Customers({ showToast }) {
   const fetchCustomers = async () => {
     setIsFetching(true);
     try {
-      const res = await api.get("/customers");
+      const res = await api.get("/customers/");
       setCustomers(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error(error);
