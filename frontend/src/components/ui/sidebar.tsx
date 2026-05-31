@@ -1,7 +1,7 @@
 import * as React from "react"
 import { NavLink } from "react-router-dom"
 import { cn } from "@/lib/utils"
-import { ChevronLeft, ChevronRight, Menu, X } from "lucide-react"
+import { ChevronLeft, ChevronRight, Menu } from "lucide-react"
 
 interface SidebarContextValue {
   state: { isOpen: boolean; isCollapsed: boolean }
@@ -59,9 +59,9 @@ function Sidebar({ children, className, ...props }: { children?: React.ReactNode
 
       <aside
         className={cn(
-          "fixed top-0 left-0 z-50 h-screen bg-white border-r border-gray-200 flex flex-col transition-all duration-300",
+          "fixed inset-0 z-50 bg-white border-r border-gray-200 flex flex-col transition-all duration-300",
           isCollapsed ? "w-16" : "w-64",
-          openMobile ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+          openMobile ? "translate-x-0" : "-translate-x-full lg:translate-x-0 lg:inset-auto lg:top-0 lg:bottom-0 lg:h-screen",
           className
         )}
         {...props}
@@ -73,7 +73,15 @@ function Sidebar({ children, className, ...props }: { children?: React.ReactNode
 }
 
 function SidebarHeader({ children, className, ...props }: { children?: React.ReactNode; className?: string }) {
-  const { isCollapsed, setCollapsed, setOpenMobile } = useSidebar()
+  const { isCollapsed, setCollapsed, setOpenMobile, openMobile } = useSidebar()
+
+  const handleCollapseToggle = () => {
+    if (openMobile) {
+      setOpenMobile(false)
+    } else {
+      setCollapsed(!isCollapsed)
+    }
+  }
 
   return (
     <div className={cn("flex items-center justify-between h-16 px-4 border-b border-gray-200", className)} {...props}>
@@ -82,7 +90,7 @@ function SidebarHeader({ children, className, ...props }: { children?: React.Rea
       </div>
 
       <button
-        onClick={() => setCollapsed(!isCollapsed)}
+        onClick={handleCollapseToggle}
         className="p-2 rounded-md hover:bg-gray-100 transition-colors"
         title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
@@ -91,13 +99,6 @@ function SidebarHeader({ children, className, ...props }: { children?: React.Rea
         ) : (
           <ChevronLeft className="h-4 w-4 text-gray-500" />
         )}
-      </button>
-
-      <button
-        onClick={() => setOpenMobile(false)}
-        className="p-2 rounded-md hover:bg-gray-100 transition-colors lg:hidden"
-      >
-        <X className="h-4 w-4 text-gray-500" />
       </button>
     </div>
   )

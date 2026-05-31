@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Package, Plus, Pencil, Trash2, X, Check } from "lucide-react";
+import { Package, Plus, Pencil, Trash2, X, Check, Loader2 } from "lucide-react";
 
-export default function Products() {
+export default function Products({ showToast }) {
   const [products, setProducts] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -19,12 +20,19 @@ export default function Products() {
     quantity: "",
   });
 
+  const [errors, setErrors] = useState({});
+
   const fetchProducts = async () => {
+    setIsFetching(true);
     try {
       const res = await api.get("/products");
-      setProducts(res.data);
+      setProducts(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error(error);
+      setProducts([]);
+      showToast?.("Failed to load products", "error");
+    } finally {
+      setIsFetching(false);
     }
   };
 
@@ -34,15 +42,32 @@ export default function Products() {
 
   const resetForm = () => {
     setFormData({ name: "", sku: "", price: "", quantity: "" });
+    setErrors({});
     setEditingId(null);
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.name.trim()) newErrors.name = "Product name is required";
+    if (!formData.sku.trim()) newErrors.sku = "SKU is required";
+    if (!formData.price || parseFloat(formData.price) <= 0) newErrors.price = "Valid price is required";
+    if (!formData.quantity || parseInt(formData.quantity) < 0) newErrors.quantity = "Valid quantity is required";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
+
     setIsLoading(true);
     try {
       if (editingId) {
@@ -51,18 +76,20 @@ export default function Products() {
           price: Number(formData.price),
           quantity: Number(formData.quantity),
         });
+        showToast?.("Product updated successfully", "success");
       } else {
         await api.post("/products", {
           ...formData,
           price: Number(formData.price),
           quantity: Number(formData.quantity),
         });
+        showToast?.("Product added successfully", "success");
       }
       resetForm();
       fetchProducts();
     } catch (error) {
       console.error(error);
-      alert(error?.response?.data?.detail || "Something went wrong");
+      showToast?.(error?.response?.data?.detail || "Something went wrong", "error");
     } finally {
       setIsLoading(false);
     }
@@ -83,10 +110,11 @@ export default function Products() {
     if (!window.confirm("Are you sure you want to delete this product?")) return;
     try {
       await api.delete(`/products/${id}`);
+      showToast?.("Product deleted successfully", "success");
       fetchProducts();
     } catch (error) {
       console.error(error);
-      alert(error?.response?.data?.detail || "Failed to delete product");
+      showToast?.(error?.response?.data?.detail || "Failed to delete product", "error");
     }
   };
 
@@ -127,41 +155,55 @@ export default function Products() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-4">
-            <Input
-              type="text"
-              name="name"
-              placeholder="Product Name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-            />
-            <Input
-              type="text"
-              name="sku"
-              placeholder="SKU"
-              value={formData.sku}
-              onChange={handleChange}
-              required
-            />
-            <Input
-              type="number"
-              name="price"
-              placeholder="Price"
-              value={formData.price}
-              onChange={handleChange}
-              required
-            />
-            <Input
-              type="number"
-              name="quantity"
-              placeholder="Quantity"
-              value={formData.quantity}
-              onChange={handleChange}
-              required
-            />
+            <div>
+              <Input
+                type="text"
+                name="name"
+                placeholder="Product Name"
+                value={formData.name}
+                onChange={handleChange}
+              />
+              {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+            </div>
+            <div>
+              <Input
+                type="text"
+                name="sku"
+                placeholder="SKU"
+                value={formData.sku}
+                onChange={handleChange}
+              />
+              {errors.sku && <p className="text-red-500 text-xs mt-1">{errors.sku}</p>}
+            </div>
+            <div>
+              <Input
+                type="number"
+                name="price"
+                placeholder="Price"
+                value={formData.price}
+                onChange={handleChange}
+              />
+              {errors.price && <p className="text-red-500 text-xs mt-1">{errors.price}</p>}
+            </div>
+            <div>
+              <Input
+                type="number"
+                name="quantity"
+                placeholder="Quantity"
+                value={formData.quantity}
+                onChange={handleChange}
+              />
+              {errors.quantity && <p className="text-red-500 text-xs mt-1">{errors.quantity}</p>}
+            </div>
             <div className="flex gap-3 col-span-full md:col-span-2">
               <Button type="submit" disabled={isLoading} className="gap-2">
-                {editingId ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : editingId ? (
+                  <Check className="h-4 w-4" />
+                ) : (
+                  <Plus className="h-4 w-4" />
+                )}
                 {editingId ? "Update Product" : "Add Product"}
               </Button>
             </div>
@@ -176,57 +218,63 @@ export default function Products() {
           <CardDescription>View and manage all products in your inventory</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>SKU</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Stock</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {products.length === 0 ? (
+          {isFetching ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan="5" className="text-center py-8 text-neutral-500">
-                    <Package className="h-12 w-12 mx-auto mb-3 text-neutral-300" />
-                    <p>No products found</p>
-                    <p className="text-sm">Add your first product using the form above</p>
-                  </TableCell>
+                  <TableHead>Name</TableHead>
+                  <TableHead>SKU</TableHead>
+                  <TableHead>Price</TableHead>
+                  <TableHead>Stock</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ) : (
-                products.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell className="font-medium">{product.name}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="font-mono">{product.sku}</Badge>
-                    </TableCell>
-                    <TableCell>₹{product.price.toLocaleString()}</TableCell>
-                    <TableCell>
-                      {product.quantity > 10 ? (
-                        <Badge variant="success">{product.quantity} in stock</Badge>
-                      ) : product.quantity > 0 ? (
-                        <Badge variant="warning">Low: {product.quantity}</Badge>
-                      ) : (
-                        <Badge variant="destructive">Out of stock</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button variant="outline" size="sm" onClick={() => handleEdit(product)}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button variant="destructive" size="sm" onClick={() => handleDelete(product.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+              </TableHeader>
+              <TableBody>
+                {products.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan="5" className="text-center py-8 text-neutral-500">
+                      <Package className="h-12 w-12 mx-auto mb-3 text-neutral-300" />
+                      <p>No products found</p>
+                      <p className="text-sm">Add your first product using the form above</p>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  products.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell className="font-medium">{product.name}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="font-mono">{product.sku}</Badge>
+                      </TableCell>
+                      <TableCell>₹{product.price.toLocaleString()}</TableCell>
+                      <TableCell>
+                        {product.quantity > 10 ? (
+                          <Badge variant="success">{product.quantity} in stock</Badge>
+                        ) : product.quantity > 0 ? (
+                          <Badge variant="warning">Low: {product.quantity}</Badge>
+                        ) : (
+                          <Badge variant="destructive">Out of stock</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button variant="outline" size="sm" onClick={() => handleEdit(product)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button variant="destructive" size="sm" onClick={() => handleDelete(product.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

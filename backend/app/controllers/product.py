@@ -2,7 +2,16 @@ from app.models.product import Product
 from fastapi import HTTPException
 
 def create_product(db, product_data):
+    existing_product = db.query(Product).filter(
+        Product.sku == product_data.sku
+    ).first()
 
+    if existing_product:
+        raise HTTPException(
+            status_code=400,
+            detail="Model already exists",
+        )
+    #new models can be created
     product = Product(
         name = product_data.name,
         sku = product_data.sku,

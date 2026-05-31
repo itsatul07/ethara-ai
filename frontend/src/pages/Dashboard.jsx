@@ -17,7 +17,6 @@ function Dashboard() {
     try {
       const res = await api.get("/dashboard");
       setStats(res.data);
-      console.log(res.data);
     } catch (error) {
       console.error(error);
     }
@@ -29,7 +28,7 @@ function Dashboard() {
         Dashboard
       </h1>
 
-      <div className="grid md:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div className="bg-white p-5 rounded-lg shadow">
           <h2>Total Products</h2>
           <p className="text-3xl font-bold">
