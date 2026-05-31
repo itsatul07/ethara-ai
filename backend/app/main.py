@@ -17,6 +17,8 @@ app.add_middleware(
     allow_origins = [
         "http://localhost:5173",
         "https://ethara-ai-five.vercel.app",
+        "ethara-ai-git-main-atul-kumars-projects-b36deb60.vercel.app",
+        "ethara-6784emk8h-atul-kumars-projects-b36deb60.vercel.app"
     ],
     allow_credentials = True,
     allow_methods = ["*"],
