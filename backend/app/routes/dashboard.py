@@ -8,7 +8,7 @@ router = APIRouter(
     tags = ["dashboard"]
 )
 
-@router.get("/dashboard")
+@router.get("/")
 def getDashboardRoute(
     db:Session = Depends(get_db)
 ):

@@ -17,6 +17,7 @@ function Dashboard() {
     try {
       const res = await api.get("/dashboard");
       setStats(res.data);
+      console.log(res.data);
     } catch (error) {
       console.error(error);
     }

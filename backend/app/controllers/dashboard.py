@@ -13,7 +13,7 @@ def get_dashboard(db):
     )
 
     return {
-        "total product":total_products,
+        "total_products":total_products,
         "total_customers":total_customers,
         "total_orders":total_orders,
         "low_stock_products": [
