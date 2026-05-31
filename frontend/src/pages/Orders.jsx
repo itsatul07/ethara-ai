@@ -114,7 +114,7 @@ export default function Orders({ showToast }) {
         await api.put(`/orders/${editingId}`, formData);
         showToast?.("Order updated successfully", "success");
       } else {
-        await api.post("/orders", formData);
+        await api.post("/orders/", formData);
         showToast?.("Order added successfully", "success");
       }
       resetForm();

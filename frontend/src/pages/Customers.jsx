@@ -78,7 +78,7 @@ export default function Customers({ showToast }) {
         await api.put(`/customers/${editingId}`, formData);
         showToast?.("Customer updated successfully", "success");
       } else {
-        await api.post("/customers", formData);
+        await api.post("/customers/", formData);
         showToast?.("Customer added successfully", "success");
       }
       resetForm();

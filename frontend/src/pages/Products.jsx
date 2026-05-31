@@ -78,7 +78,7 @@ export default function Products({ showToast }) {
         });
         showToast?.("Product updated successfully", "success");
       } else {
-        await api.post("/products", {
+        await api.post("/products/", {
           ...formData,
           price: Number(formData.price),
           quantity: Number(formData.quantity),
